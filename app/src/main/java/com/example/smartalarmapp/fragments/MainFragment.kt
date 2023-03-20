@@ -1,11 +1,8 @@
 package com.example.smartalarmapp.fragments
 
 
-import android.R
-import android.location.Location
-import android.location.LocationManager
-import android.os.Binder
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,18 +11,22 @@ import android.widget.Spinner
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.example.smartalarmapp.MainViewModel
-import com.example.smartalarmapp.TimeZonesList
+import com.example.smartalarmapp.R
 import com.example.smartalarmapp.databinding.FragmentMainBinding
 import org.shredzone.commons.suncalc.SunTimes
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.*
+import java.util.stream.Collectors
 
 
 class MainFragment : Fragment() {
 
     private lateinit var binding: FragmentMainBinding
     private val viewModel: MainViewModel by activityViewModels()
-    lateinit var ids: MutableList<String?>
+    private lateinit var ids: MutableList<String?>
 
 
     override fun onCreateView(
@@ -38,9 +39,8 @@ class MainFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        binding.bsetAlarm.setOnClickListener { setOnClick() }
         initTimePickers()
-        getSun()
+//        getSun()
         setTextAlarm()
         initSpinner()
         binding.numPickMin.setOnValueChangedListener { _, _, _ ->
@@ -49,21 +49,22 @@ class MainFragment : Fragment() {
         binding.numPickHour.setOnValueChangedListener { _, _, _ ->
             setTextAlarm()
         }
+        binding.tvGeo.setOnClickListener { setOnClick() }
 
 
-        binding.btGeo.setOnClickListener {
 
-            val tz = TimeZone.getDefault()
-            binding.tvGeo.setText(
-                "Time zone ${
-                    tz.getDisplayName(
-                        false, TimeZone.SHORT
-                    )
-                }\n Time zone id ${tz.id}"
-            )
-
-
-        }
+//        binding.btGeo.setOnClickListener {
+//            val tz = TimeZone.getDefault()
+//            binding.tvGeo.setText(
+//                "Time zone ${
+//                    tz.getDisplayName(
+//                        false, TimeZone.SHORT
+//                    )
+//                }\n Time zone id ${tz.id}"
+//            )
+//
+//
+//        }
     }
 
     private fun setTextAlarm() = with(binding) {
@@ -102,23 +103,22 @@ class MainFragment : Fragment() {
         val h = binding.numPickHour.value
         val m = binding.numPickMin.value
 
-//        val tz = binding.spinner.selectedItem.toString()
-//        viewModel.setAlarm(tz,h,m)
+        val tz = binding.spinner.selectedItem.toString()
+        viewModel.setAlarm(tz, h, m, requireContext())
     }
+
 
     private fun initSpinner() {
         val spinner: Spinner = binding.spinner
-        val idArray = TimeZone.getAvailableIDs()
-        val idAdapter = ArrayAdapter(
-            requireContext(), R.layout.simple_spinner_dropdown_item, idArray
-        )
-        idAdapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item)
-        spinner.adapter = idAdapter
+        ids = viewModel.getTimezonesList()
 
-        for (i in 0 until idAdapter.count) {
-            if (idAdapter.getItem(i).equals(TimeZone.getDefault().id)) {
-                spinner.setSelection(i)
-            }
+        ArrayAdapter<String>(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            ids
+        ).also { adapter ->
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spinner.adapter = adapter
         }
     }
 

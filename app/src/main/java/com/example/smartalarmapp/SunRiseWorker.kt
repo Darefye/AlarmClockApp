@@ -39,7 +39,7 @@ class SunRiseWorker (private val context: Context, workerParams: WorkerParameter
             intent.putExtra(AlarmClock.EXTRA_SKIP_UI,true)
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent)
-//            makeStatusNotification("alarm will go off in $timeTask mils milliseconds",context )
+            makeStatusNotification("alarm will go off in $timeTask mils milliseconds",context )
             Result.success()
         }
         catch (throwable: Throwable) {
